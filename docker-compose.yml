@@ -1,0 +1,56 @@
+version: '3'
+services:
+  poker-app-database:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    container_name: poker-app-database
+    ports:
+      - 5433:5432
+    volumes:
+      - postgres_data1:/var/lib/postgresql/data
+  poker-app:
+    image: poker-app
+    container_name: poker-app
+    ports:
+      - 8081:8081
+    links:
+      - poker-app-database
+    depends_on:
+      - poker-app-database
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://poker-app-database:5432/postgres
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=create
+      - SPRING_LIQUIBASE_CHANGE-LOG=classpath:db/changelog/db.changelog-master.xml
+  keycloak-postgres:
+    container_name: keycloak-postgres
+    image: postgres:latest
+    volumes:
+      - postgres_data2:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: password
+  keycloak:
+    container_name: keycloak
+    image: quay.io/keycloak/keycloak:latest
+    environment:
+      DB_VENDOR: POSTGRES
+      DB_ADDR: keycloak-postgres
+      DB_DATABASE: keycloak
+      DB_USER: keycloak
+      DB_SCHEMA: public
+      DB_PASSWORD: password
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: admin
+    ports:
+      - 8080:8080
+    depends_on:
+      - keycloak-postgres
+
+volumes:
+  postgres_data1:
+  postgres_data2:
