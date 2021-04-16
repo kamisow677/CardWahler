@@ -14,7 +14,7 @@ services:
     image: poker-app
     container_name: poker-app
     ports:
-      - 8081:8081
+      - 8082:8082
     links:
       - poker-app-database
     depends_on:
@@ -25,6 +25,10 @@ services:
       - SPRING_DATASOURCE_PASSWORD=password
       - SPRING_JPA_HIBERNATE_DDL_AUTO=create
       - SPRING_LIQUIBASE_CHANGE-LOG=classpath:db/changelog/db.changelog-master.xml
+      - KEYCLOAK_AUTH-SERVER-URL=http://keycloak:8080/auth
+      - KEYCLOAK_REALM=PokerVoting
+      - KEYCLOAK_RESOURCE=voting-client-id
+      - KEYCLOAK_PUBLIC-CLIENT=true
   keycloak-postgres:
     container_name: keycloak-postgres
     image: postgres:latest
