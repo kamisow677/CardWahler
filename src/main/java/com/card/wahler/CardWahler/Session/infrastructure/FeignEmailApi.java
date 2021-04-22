@@ -57,17 +57,20 @@ public interface FeignEmailApi extends EmailApi {
             if (authentication != null && authentication.getDetails() instanceof SimpleKeycloakAccount) {
                 SimpleKeycloakAccount details = (SimpleKeycloakAccount) authentication.getDetails();
                 requestTemplate.header(AUTHORIZATION_HEADER, String.format("%s %s", TOKEN_TYPE, details.getKeycloakSecurityContext().getTokenString()));
+            } else {
+                var request = OAuth2AuthorizeRequest
+                        .withClientRegistrationId("internal-api") // <- Here you load your registered client
+                        .principal(authentication)
+                        .build();
+
+                var ael = oAuth2AuthorizedClientManager.authorize(request);
+
+                if (authentication != null) {
+                    requestTemplate.header(AUTHORIZATION_HEADER, String.format("%s %s", TOKEN_TYPE,  ael.getAccessToken().getTokenValue()));
+                }
             }
 
-            var request = OAuth2AuthorizeRequest
-                    .withClientRegistrationId("internal-api") // <- Here you load your registered client
-                    .principal(authentication)
-                    .build();
-            var ael = oAuth2AuthorizedClientManager.authorize(request);
 
-            if (authentication != null) {
-                requestTemplate.header(AUTHORIZATION_HEADER, String.format("%s %s", TOKEN_TYPE,  ael.getAccessToken().getTokenValue()));
-            }
         }
 
     }
@@ -99,7 +102,7 @@ public interface FeignEmailApi extends EmailApi {
                 case 403:
                 case 404: {
                     logger.error("Error took place when using Feign client to send HTTP Request. Status code " + response.status() + ", methodKey = " + methodKey);
-                    return new ResponseStatusException(HttpStatus.valueOf(response.status()), "eweasda");
+                    return new ResponseStatusException(HttpStatus.valueOf(response.status()), "Email Service is not responding");
                 }
                 default:
                     return new Exception("Generic error");
