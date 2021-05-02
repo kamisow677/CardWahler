@@ -44,7 +44,7 @@ public class PokermanService {
 
     public byte[] getImage(String nick) {
         return repository.findByNick(nick, ImageOnly.class).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "nick is bad")
+                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "no image for "+ nick)
         ).getImage();
     }
 

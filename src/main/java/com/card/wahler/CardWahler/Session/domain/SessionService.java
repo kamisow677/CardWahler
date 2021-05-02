@@ -11,8 +11,8 @@ public class SessionService {
     @Autowired
     SessionRepository sessionRepository;
 
-    public Pokerman save(SessionService sessionService) {
-        return sessionService.save(sessionService);
+    public Session save(Session session) {
+        return sessionRepository.save(session);
     }
 
     public Iterable<Session> findAll() {

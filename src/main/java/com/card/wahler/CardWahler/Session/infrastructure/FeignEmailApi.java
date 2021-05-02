@@ -69,8 +69,6 @@ public interface FeignEmailApi extends EmailApi {
                     requestTemplate.header(AUTHORIZATION_HEADER, String.format("%s %s", TOKEN_TYPE,  ael.getAccessToken().getTokenValue()));
                 }
             }
-
-
         }
 
     }
