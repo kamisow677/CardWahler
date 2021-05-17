@@ -36,21 +36,19 @@ public class AnswerSerive {
 
     public List<AnswerDto> findAll() {
         return StreamSupport.stream(answerRepository.findAll().spliterator(), false)
-                .map(answer -> {
-                    return answerMapper.AnswerToAnswerDto(answer);
-                })
+                .map(answer -> answerMapper.AnswerToAnswerDto(answer))
                 .collect(Collectors.toList());
     }
 
     @Transactional
-    public void editPoints(int points, String nick, String task) {
-        int affectedRows = answerRepository.editPoints(points, nick, task);
+    public void editPoints(int points, String keycloakId, String task) {
+        int affectedRows = answerRepository.editPoints(points, keycloakId, task);
         checkCorrectNumberOfRowsAffected(affectedRows);
     }
 
     @Transactional
-    public void addAnswer(String nick, int points, String taskName) {
-        Optional<Pokerman> pokermanOptional = pokermanRepository.findByNick(nick, Pokerman.class);
+    public void addAnswer(String keycloakId, int points, String taskName) {
+        Optional<Pokerman> pokermanOptional = pokermanRepository.findByKeycloakUserId(keycloakId, Pokerman.class);
         Pokerman pokerman = pokermanOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "nick is bad"));
 
         Optional<Round> roundOptional = roundRepository.findByTaskName(taskName);

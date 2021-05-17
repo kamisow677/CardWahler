@@ -28,8 +28,9 @@ public class Round {
         @JoinColumn(name = "session_id")
         private Session session;
 
+
         @OneToMany(fetch = FetchType.EAGER, mappedBy="round")
-        @JsonManagedReference
+//        @JsonManagedReference
         private List<Answer> answers;
 
 

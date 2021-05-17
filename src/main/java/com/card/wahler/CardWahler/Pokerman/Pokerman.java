@@ -2,38 +2,61 @@ package com.card.wahler.CardWahler.Pokerman;
 
 import com.card.wahler.CardWahler.Answer.Answer;
 import com.card.wahler.CardWahler.Session.domain.Session;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import com.fasterxml.jackson.annotation.*;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
+import lombok.Builder;
 
-import javax.persistence.*;
-import javax.validation.constraints.NotNull;
-import java.util.List;
+import javax.persistence.Id;
+import javax.persistence.Entity;
+import javax.persistence.ManyToMany;
+import javax.persistence.FetchType;
+import javax.persistence.CascadeType;
+import javax.persistence.OneToMany;
 import java.util.Set;
 
 @Entity
-@Data
-@Builder
+@Getter
+@Setter
 @NoArgsConstructor
-@AllArgsConstructor
+@ToString
+@Builder
 public class Pokerman {
 
     @Id
-    @GeneratedValue
-    private int id;
+    private String keycloakUserId;
 
-    @NotNull
     private String nick;
 
     private byte[] image;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(
+            mappedBy = "pokermen",
+            fetch = FetchType.LAZY,
+            cascade = {
+                    CascadeType.ALL
+            })
+    @JsonIgnore
     Set<Session> sesions;
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy="pokerman")
+    @OneToMany(mappedBy="pokerman")
     @JsonManagedReference
-    private List<Answer> answers;
+    private Set<Answer> answers;
+
+    @JsonCreator
+    public Pokerman(@JsonProperty("keycloakUserId") String keycloakUserId,
+                    @JsonProperty("nick") String nick,
+                    @JsonProperty("image") byte[] image,
+                    @JsonProperty("sesions") Set<Session> sesions,
+                    @JsonProperty("answers") Set<Answer> answers
+    ) {
+        this.keycloakUserId = keycloakUserId;
+        this.nick = nick;
+        this.image = image;
+        this.sesions = sesions;
+        this.answers = answers;
+    }
 
 }

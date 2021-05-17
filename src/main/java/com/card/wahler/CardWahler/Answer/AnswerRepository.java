@@ -14,8 +14,8 @@ public interface AnswerRepository extends CrudRepository<Answer, String> {
             "(SELECT r.id FROM round r " +
             "WHERE r.task_name = ?3)" +
             "AND pokerman_id = " +
-            "(SELECT p.id FROM pokerman p " +
-            "WHERE p.nick = ?2)", nativeQuery = true)
-    int editPoints(int points, String nick, String taskName);
+            "(SELECT p.keycloak_user_id FROM pokerman p " +
+            "WHERE p.keycloak_user_id = ?2)", nativeQuery = true)
+    int editPoints(int points, String keycloakId, String taskName);
 
 }

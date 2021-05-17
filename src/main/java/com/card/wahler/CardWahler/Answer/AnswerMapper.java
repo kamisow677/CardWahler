@@ -1,27 +1,22 @@
 package com.card.wahler.CardWahler.Answer;
 
-
-import com.card.wahler.CardWahler.Pokerman.Pokerman;
-import com.card.wahler.CardWahler.Pokerman.PokermanDto;
+import com.card.wahler.CardWahler.Pokerman.PokermanMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class AnswerMapper {
+
+    private final PokermanMapper pokermanMapper;
 
     public AnswerDto AnswerToAnswerDto(Answer answer) {
         return AnswerDto.builder()
                 .points(answer.getPoints())
                 .pokerman(
-                        pokermanToPokermanDto(answer.getPokerman())
+                        pokermanMapper.pokermanToPokermanDto(answer.getPokerman())
                 )
                 .build();
     }
-
-    private PokermanDto pokermanToPokermanDto(Pokerman pokerman) {
-        return PokermanDto.builder()
-                .nick(pokerman.getNick())
-                .build();
-    }
-
 
 }

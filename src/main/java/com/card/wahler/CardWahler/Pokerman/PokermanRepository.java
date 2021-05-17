@@ -10,7 +10,11 @@ import java.util.Optional;
 @Repository
 public interface PokermanRepository extends CrudRepository<Pokerman, String> {
 
-    <T> Optional<T> findByNick(String nick, Class<T> type);
+    <T> Iterable<T> findByNick(String nick, Class<T> type);
+
+    <T> Optional<T> findByNickAndKeycloakUserId(String nick, String keycloakUserId, Class<T> type);
+
+    <T> Optional<T> findByKeycloakUserId(String keycloakUserId, Class<T> type);
 
     @Modifying
     @Query("update Pokerman p set p.image = ?1 where p.nick = ?2")

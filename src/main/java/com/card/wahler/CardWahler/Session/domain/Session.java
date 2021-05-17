@@ -1,16 +1,12 @@
 package com.card.wahler.CardWahler.Session.domain;
 
-import com.card.wahler.CardWahler.Round.Round;
 import com.card.wahler.CardWahler.Pokerman.Pokerman;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.card.wahler.CardWahler.Round.Round;
+import com.fasterxml.jackson.annotation.*;
 import lombok.*;
+import org.springframework.validation.annotation.Validated;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.GeneratedValue;
-import javax.persistence.ManyToMany;
-import javax.persistence.OneToMany;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.util.Set;
 
@@ -18,38 +14,46 @@ import java.util.Set;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 @ToString
-@EqualsAndHashCode
+@Validated
 public class Session {
 
     @Id
     @GeneratedValue
     private int id;
 
-    @NotNull
+    @NotNull()
     private String password;
 
-    @NotNull
     private String link;
 
-    @ManyToMany
-    Set<Pokerman> pokermens;
+    @ManyToMany(
+            fetch = FetchType.LAZY,
+            cascade = {
+                    CascadeType.ALL
+            }
+    )
+    @JsonIgnore
+    @JoinTable(
+            name = "pokermen_sessions",
+            joinColumns = @JoinColumn(name = "session_id"),
+            inverseJoinColumns = @JoinColumn(name = "keycloakUserId_id"))
+    private Set<Pokerman> pokermen;
 
     @OneToMany(mappedBy="session")
     private Set<Round> rounds;
 
     @JsonCreator
     public Session(@JsonProperty("id") int id,
-                         @JsonProperty("password") String password,
-                         @JsonProperty("link") String link,
-                        @JsonProperty("pokermens") String pokermens,
-                   @JsonProperty("rounds") String rounds) {
+                   @NotNull @JsonProperty("password") String password,
+                   @JsonProperty("link") String link,
+                   @JsonProperty("pokermen") Set<Pokerman> pokermen,
+                   @JsonProperty("rounds") Set<Round> rounds) {
         this.id = id;
         this.password = password;
         this.link = link;
-        this.pokermens = null;
-        this.rounds = null;
+        this.pokermen = pokermen;
+        this.rounds = rounds;
     }
 
 }

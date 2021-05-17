@@ -1,5 +1,6 @@
 package com.card.wahler.CardWahler.Answer;
 
+import com.card.wahler.CardWahler.Session.domain.Session;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.card.wahler.CardWahler.Round.Round;
 import com.card.wahler.CardWahler.Pokerman.Pokerman;
@@ -18,7 +19,7 @@ import javax.persistence.*;
 public class Answer {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
 
     private int points;
@@ -30,7 +31,7 @@ public class Answer {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "round_id")
-    @JsonBackReference
+//    @JsonBackReference
     private Round round;
 
 }

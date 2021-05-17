@@ -35,10 +35,9 @@ public class VotingPokerApplication {
 	@EventListener(ApplicationReadyEvent.class)
 	public void doSomethingAfterStartup() {
 		if (repository.findAll().iterator().hasNext() == false) {
-			repository.save(Pokerman.builder().nick("madora").build());
+//			repository.save(Pokerman.builder().nick("madora").build());
 
-//			answerRepository.save(Answer.builder().id(30).build());
-			roundRepository.save(Round.builder().id(1).taskName("jira-1000").build());
+//			roundRepository.save(Round.builder().id(1).taskName("jira-1000").build());
 		}
 	}
 

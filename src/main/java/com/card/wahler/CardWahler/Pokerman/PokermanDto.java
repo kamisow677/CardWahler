@@ -1,15 +1,21 @@
 package com.card.wahler.CardWahler.Pokerman;
 
+import com.card.wahler.CardWahler.Session.domain.SessionDto;
 import lombok.Builder;
 import lombok.Data;
 
-import javax.validation.constraints.NotNull;
+import java.util.Set;
 
 @Data
 @Builder
 public class PokermanDto {
 
-    @NotNull
+    private String keycloakUserId;
+
     private String nick;
+
+    private byte[] image;
+
+    Set<SessionDto> sesionsDto;
 
 }

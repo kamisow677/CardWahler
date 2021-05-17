@@ -17,7 +17,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@WithMockUser(username = "user1", authorities =  "USER" )
+@WithMockUser(username = "keycloakUserId",  roles = "user" )
 @ActiveProfiles("test")
 class AnswerControllerSpec extends Specification{
 
@@ -25,6 +25,7 @@ class AnswerControllerSpec extends Specification{
 	private static final TASK_NAME_KEY = "task"
 	private static final NICK_VALUE = "minsc"
 	private static final NICK_KEY = "nick"
+	private static final KEYCLOAK_USER_ID = "keycloakUserId"
 
 	@Autowired
 	private MockMvc mvc;
@@ -53,7 +54,7 @@ class AnswerControllerSpec extends Specification{
 	def "should correctly save answer"() {
 		given:
 			roundRepository.save(com.card.wahler.CardWahler.Round.Round.builder().taskName(TASK_NAME_VALUE).build())
-			pokermanRepository.save(com.card.wahler.CardWahler.Pokerman.Pokerman.builder().nick(NICK_VALUE).build())
+			pokermanRepository.save(com.card.wahler.CardWahler.Pokerman.Pokerman.builder().keycloakUserId(KEYCLOAK_USER_ID).nick(NICK_VALUE).build())
 		when:
 			ResultActions action = mvc.perform(post("/api/answer/{points}", 13)
 					.param(NICK_KEY, NICK_VALUE)
@@ -70,7 +71,7 @@ class AnswerControllerSpec extends Specification{
 		given:
 			def round = com.card.wahler.CardWahler.Round.Round.builder().taskName(TASK_NAME_VALUE).build()
 			roundRepository.save(round);
-			def pokerman = com.card.wahler.CardWahler.Pokerman.Pokerman.builder().nick(NICK_VALUE).build();
+			def pokerman = com.card.wahler.CardWahler.Pokerman.Pokerman.builder().keycloakUserId(KEYCLOAK_USER_ID).nick(NICK_VALUE).build();
 			pokermanRepository.save(pokerman)
 			answerRepository.save(com.card.wahler.CardWahler.Answer.Answer.builder().pokerman(pokerman).round(round).points(13).build())
 		when:

@@ -46,7 +46,6 @@ public interface FeignEmailApi extends EmailApi {
         @Autowired
         OAuth2AuthorizedClientManager oAuth2AuthorizedClientManager;
 
-
         @Override
         public void apply(RequestTemplate requestTemplate) {
 //            AnonymousAuthenticationToken anonymousAuthenticationToken = new AnonymousAuthenticationToken
