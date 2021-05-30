@@ -34,11 +34,11 @@ public class VotingPokerApplication {
 
 	@EventListener(ApplicationReadyEvent.class)
 	public void doSomethingAfterStartup() {
-		if (repository.findAll().iterator().hasNext() == false) {
+//		if (repository.findAll().iterator().hasNext() == false) {
 //			repository.save(Pokerman.builder().nick("madora").build());
 
 //			roundRepository.save(Round.builder().id(1).taskName("jira-1000").build());
-		}
+//		}
 	}
 
 }
