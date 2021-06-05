@@ -48,17 +48,24 @@ public class AnswerSerive {
 
     @Transactional
     public void addAnswer(String keycloakId, int points, String taskName) {
-        Optional<Pokerman> pokermanOptional = pokermanRepository.findByKeycloakUserId(keycloakId, Pokerman.class);
-        Pokerman pokerman = pokermanOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "nick is bad"));
+        Optional<Answer>  byTaskNameAndKeycloakId = answerRepository.findFirstByTaskNameAndKeycloakId(taskName, keycloakId);
+        if (byTaskNameAndKeycloakId.isPresent()) {
+            Answer answer = byTaskNameAndKeycloakId.get();
+            answer.setPoints(points);
+            answerRepository.save(answer);
+        } else {
+            Optional<Pokerman> pokermanOptional = pokermanRepository.findByKeycloakUserId(keycloakId, Pokerman.class);
+            Pokerman pokerman = pokermanOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "no pokerman"));
 
-        Optional<Round> roundOptional = roundRepository.findByTaskName(taskName);
-        Round round = roundOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "nick is bad"));
+            Optional<Round> roundOptional = roundRepository.findByTaskName(taskName);
+            Round round = roundOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "task name is bad"));
 
-        Answer answer = Answer.builder().points(points)
-                .pokerman(pokerman)
-                .round(round)
-                .build();
-        answerRepository.save(answer);
+            Answer answer = Answer.builder().points(points)
+                    .pokerman(pokerman)
+                    .round(round)
+                    .build();
+            answerRepository.save(answer);
+        }
     }
 
     private void checkCorrectNumberOfRowsAffected(Integer affectedRows) {
@@ -67,5 +74,9 @@ public class AnswerSerive {
         }
     }
 
-
+    public AnswerDto find(Integer roundId, String toString) {
+        return answerRepository.findFirstByRoundIdAndKeycloakId(roundId, toString)
+                .map(answer -> answerMapper.AnswerToAnswerDto(answer))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "no answer "));
+    }
 }

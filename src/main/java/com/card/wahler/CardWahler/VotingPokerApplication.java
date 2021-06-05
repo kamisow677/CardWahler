@@ -39,6 +39,8 @@ public class VotingPokerApplication {
 
 //			roundRepository.save(Round.builder().id(1).taskName("jira-1000").build());
 //		}
+
+//		roundRepository.save(Round.builder().taskName("Nazwa taska").build());
 	}
 
 }

@@ -33,6 +33,4 @@ public class Round {
 //        @JsonManagedReference
         private List<Answer> answers;
 
-
-
 }

@@ -3,6 +3,7 @@ package com.card.wahler.CardWahler.Pokerman;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -57,6 +58,12 @@ public class PokermanService {
         } else throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "no image for " + nick);
     }
 
+    public PokermanDto getPokermanDto(Optional<String> nick, Optional<String> keycloakUserId) {
+        return pokermanMapper.pokermanToPokermanDto(
+                getPokerman(nick, keycloakUserId)
+        );
+    }
+
     private Pokerman getPokerman(Optional<String> nick, Optional<String> keycloakUserId) {
         if (nick.isPresent() && keycloakUserId.isPresent())
             return repository.findByNickAndKeycloakUserId(nick.get(), keycloakUserId.get(), Pokerman.class)
@@ -65,15 +72,9 @@ public class PokermanService {
             Iterator<Pokerman> iterator = repository.findByNick(nick.get(), Pokerman.class).iterator();
             if (iterator.hasNext()) {
                 return iterator.next();
-            } else throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "no image for " + nick);
+            } else throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "no user for " + nick);
         } else
             return repository.findByKeycloakUserId(keycloakUserId.get(), Pokerman.class)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "no image for " + nick));
-    }
-
-    public PokermanDto getPokermanDto(Optional<String> nick, Optional<String> keycloakUserId) {
-        return pokermanMapper.pokermanToPokermanDto(
-                getPokerman(nick, keycloakUserId)
-        );
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "no user for " + nick));
     }
 }

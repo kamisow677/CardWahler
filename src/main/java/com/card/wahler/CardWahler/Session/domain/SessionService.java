@@ -1,5 +1,6 @@
 package com.card.wahler.CardWahler.Session.domain;
 
+import com.card.wahler.CardWahler.Pokerman.PokermanMapper;
 import com.card.wahler.CardWahler.Pokerman.PokermanRepository;
 import com.card.wahler.CardWahler.Session.infrastructure.SessionRepository;
 import com.card.wahler.CardWahler.Pokerman.Pokerman;
@@ -22,6 +23,7 @@ public class SessionService {
 
     private final SessionRepository sessionRepository;
     private final PokermanRepository pokermanRepository;
+    private final PokermanMapper pokermanMapper;
     private final SessionMapper sessionMapper;
 
     public Session save(Session session) {
@@ -39,7 +41,7 @@ public class SessionService {
         return sessionRepository.findAll();
     }
 
-    public void joinSession(String password, String keycloakUserId) {
+    public SessionDto joinSession(String password, String keycloakUserId) {
         Session session = sessionRepository.findByPassword(password)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "no session for password"));
         Set<Pokerman> pokermen = session.getPokermen();
@@ -52,10 +54,26 @@ public class SessionService {
             pokermen.add(newPokerman);
         }
         session.setPokermen(pokermen);
-        sessionRepository.save(session);
+        return sessionMapper.sessionToSessionDto(sessionRepository.save(session));
     }
 
-    public Object get(String keycloakUserId) {
-        return null;
+    public void leaveSession(Integer sessionId, String keycloakUserId) {
+        Optional<Session> byId = sessionRepository.findById(sessionId);
+        if (byId.isPresent()) {
+            Session session = byId.get();
+            Set<Pokerman> pokermen = session.getPokermen();
+            pokermen.removeIf(pokerman -> pokerman.getKeycloakUserId().equals(keycloakUserId));
+            session.setPokermen(pokermen);
+            sessionRepository.save(session);
+        }
+    }
+
+    public SessionDto fingKeycloakUserIdById(String toString, Long sessionId) {
+        Set<Session> no_user_for_ = pokermanRepository.findByKeycloakUserId(toString, Pokerman.class).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "no user for ")
+        ).getSesions().stream().filter(session -> session.getId() == sessionId)
+                .collect(Collectors.toSet());
+        return sessionMapper.sessionToSessionDto(no_user_for_.stream().findFirst().orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "no user for ")));
+
     }
 }

@@ -20,8 +20,10 @@ public interface PokermanRepository extends CrudRepository<Pokerman, String> {
     @Query("update Pokerman p set p.image = ?1 where p.nick = ?2")
     int updatePokermanImage(byte[] image, String nick);
 
+    @Modifying
+    @Query("update Pokerman p set p.image = ?1 where p.nick = ?2")
+    void leave(String keycloakUserId, Long sessionId);
 }
-
 
 interface ImageOnly {
     byte[] getImage();

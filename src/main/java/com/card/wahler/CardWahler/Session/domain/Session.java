@@ -16,6 +16,7 @@ import java.util.Set;
 @NoArgsConstructor
 @ToString
 @Validated
+@Builder
 public class Session {
 
     @Id

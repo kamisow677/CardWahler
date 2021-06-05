@@ -5,6 +5,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface AnswerRepository extends CrudRepository<Answer, String> {
 
@@ -17,5 +19,17 @@ public interface AnswerRepository extends CrudRepository<Answer, String> {
             "(SELECT p.keycloak_user_id FROM pokerman p " +
             "WHERE p.keycloak_user_id = ?2)", nativeQuery = true)
     int editPoints(int points, String keycloakId, String taskName);
+
+    @Query(value = "SELECT * FROM answer " +
+            "WHERE round_id = " +
+            "(SELECT r.id FROM round r " +
+            "WHERE r.task_name = ?1)" +
+            "AND pokerman_id = ?2", nativeQuery = true)
+    Optional<Answer> findFirstByTaskNameAndKeycloakId(String taskName, String keycloakId);
+
+    @Query(value = "SELECT * FROM answer " +
+            "WHERE round_id = ?1 " +
+            "AND pokerman_id = ?2", nativeQuery = true)
+    Optional<Answer> findFirstByRoundIdAndKeycloakId(Integer roundId, String keycloakId);
 
 }

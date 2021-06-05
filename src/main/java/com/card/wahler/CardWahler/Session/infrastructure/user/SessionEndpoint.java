@@ -9,6 +9,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Set;
+
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/api/session")
@@ -24,19 +26,25 @@ public class SessionEndpoint {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<Iterable<SessionDto>> getAll() {
+    public ResponseEntity<Set<SessionDto>> getAll() {
         return ResponseEntity.ok(sessionService.getAll());
     }
 
-    @GetMapping()
-    public ResponseEntity<Object> getMySession(Authentication authentication) {
-        return ResponseEntity.ok(sessionService.get(authentication.getPrincipal().toString()));
+    @GetMapping
+    public ResponseEntity<SessionDto> get(@RequestParam Long sessionId, Authentication authentication) {
+        return ResponseEntity.ok(sessionService.fingKeycloakUserIdById(authentication.getPrincipal().toString(), sessionId));
     }
 
     @PostMapping(value = "/join", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<Object> joinSession(@RequestParam String password, Authentication authentication) {
-        sessionService.joinSession(password, authentication.getPrincipal().toString());
+    public ResponseEntity<SessionDto> joinSession(@RequestParam String password, Authentication authentication) {
+        return ResponseEntity.ok(sessionService.joinSession(password, authentication.getPrincipal().toString()));
+    }
+
+    @PutMapping(value = "/leave", consumes = "application/json", produces = "application/json")
+    public ResponseEntity<Object> leaveSession(@RequestParam Integer sessionId, Authentication authentication) {
+        sessionService.leaveSession(sessionId, authentication.getPrincipal().toString());
         return ResponseEntity.noContent().build();
     }
+
 
 }
