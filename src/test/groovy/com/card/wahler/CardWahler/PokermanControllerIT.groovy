@@ -4,16 +4,12 @@ import com.card.wahler.CardWahler.Answer.AnswerRepository
 import com.card.wahler.CardWahler.Pokerman.Pokerman
 import com.card.wahler.CardWahler.Pokerman.PokermanRepository
 import com.card.wahler.CardWahler.Round.RoundRepository
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.card.wahler.CardWahler.Session.infrastructure.SessionRepository
+import com.card.wahler.CardWahler.utils.BaseIntegration
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.web.server.ResponseStatusException
-import spock.lang.Specification
 
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertTrue
@@ -22,12 +18,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import static org.junit.Assert.assertNotNull
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@ContextConfiguration
 @WithMockCustomUser(username = "keycloakUserId", roles = "user")
-@ActiveProfiles("test")
-class PokermanControllerIT extends Specification {
+class PokermanControllerIT extends BaseIntegration {
 
 	private static final NICK_KEY = "nick"
 	private static final KEYCLOAK_KEY = "keycloakUserId"
@@ -40,8 +32,6 @@ class PokermanControllerIT extends Specification {
 	@Autowired
 	private MockMvc mvc;
 
-	@Autowired
-	ObjectMapper objectMapper
 
 	@Autowired
 	private AnswerRepository answerRepository
@@ -52,9 +42,14 @@ class PokermanControllerIT extends Specification {
 	@Autowired
 	private PokermanRepository pokermanRepository
 
+
+	@Autowired
+	private SessionRepository sessionRepository
+
 	def setup() {
 		answerRepository.deleteAll()
 		roundRepository.deleteAll()
+		sessionRepository.deleteAll()
 		pokermanRepository.deleteAll()
 	}
 

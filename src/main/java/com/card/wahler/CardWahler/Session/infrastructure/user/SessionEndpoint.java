@@ -31,8 +31,8 @@ public class SessionEndpoint {
     }
 
     @GetMapping
-    public ResponseEntity<SessionDto> get(@RequestParam Long sessionId, Authentication authentication) {
-        return ResponseEntity.ok(sessionService.fingKeycloakUserIdById(authentication.getPrincipal().toString(), sessionId));
+    public ResponseEntity<Set<SessionDto>> get(Authentication authentication) {
+        return ResponseEntity.ok(sessionService.fingKeycloakUserIdById(authentication.getPrincipal().toString()));
     }
 
     @PostMapping(value = "/join", consumes = "application/json", produces = "application/json")

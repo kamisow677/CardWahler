@@ -32,4 +32,13 @@ public interface AnswerRepository extends CrudRepository<Answer, String> {
             "AND pokerman_id = ?2", nativeQuery = true)
     Optional<Answer> findFirstByRoundIdAndKeycloakId(Integer roundId, String keycloakId);
 
+    @Query(value = "SELECT * FROM answer " +
+            "WHERE round_id = (" +
+            "   SELECT r.id FROM round r" +
+            "   WHERE r.session_id = ?1  AND is_current = true" +
+            ")" +
+            "AND pokerman_id = ?2", nativeQuery = true)
+    Optional<Answer> findFirstByCurrentRoundInSession(Integer sessionId, String keycloakId);
+
+
 }

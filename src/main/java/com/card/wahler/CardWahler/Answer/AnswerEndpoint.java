@@ -29,6 +29,11 @@ public class AnswerEndpoint {
         return ResponseEntity.ok(service.find(roundId, authentication.getPrincipal().toString()));
     }
 
+    @GetMapping("/current/round")
+    public ResponseEntity<AnswerDto> getAnswerInCurrentRound(@RequestParam Integer sessionId, Authentication authentication) {
+        return ResponseEntity.ok(service.findAnswerCurrentRoundInSession(sessionId, authentication.getPrincipal().toString()));
+    }
+
     @PutMapping("/{points}")
     public ResponseEntity<Object> editPoints(@PathVariable int points, @RequestParam String task) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

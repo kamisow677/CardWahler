@@ -1,13 +1,15 @@
 package com.card.wahler.CardWahler.Pokerman;
 
 import com.card.wahler.CardWahler.Session.domain.SessionDto;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
 import java.util.Set;
 
-@Data
 @Builder
+@RequiredArgsConstructor
+@AllArgsConstructor
+@ToString
+@Data
 public class PokermanDto {
 
     private String keycloakUserId;

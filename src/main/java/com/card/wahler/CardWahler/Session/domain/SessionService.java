@@ -68,12 +68,10 @@ public class SessionService {
         }
     }
 
-    public SessionDto fingKeycloakUserIdById(String toString, Long sessionId) {
+    public Set<SessionDto> fingKeycloakUserIdById(String toString) {
         Set<Session> no_user_for_ = pokermanRepository.findByKeycloakUserId(toString, Pokerman.class).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "no user for ")
-        ).getSesions().stream().filter(session -> session.getId() == sessionId)
-                .collect(Collectors.toSet());
-        return sessionMapper.sessionToSessionDto(no_user_for_.stream().findFirst().orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "no user for ")));
-
+        ).getSesions();
+        return  no_user_for_.stream().map(session -> sessionMapper.sessionToSessionDto(session)).collect(Collectors.toSet());
     }
 }

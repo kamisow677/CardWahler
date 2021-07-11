@@ -23,12 +23,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.server.ResponseStatusException;
 
-@FeignClient(value = "jplaceholder", url = "http://localhost:8081/api/email",
+@FeignClient(name = "email", url = "${feign.client.url}",
         fallback = FeignEmailApi.FeignEmailApiFallback.class,
         configuration = FeignEmailApi.FeignConfig.class)
 public interface FeignEmailApi extends EmailApi {
 
-    @GetMapping()
+    @GetMapping("/api/email")
     ResponseEntity<String> sendEmail();
 
     class FeignEmailApiFallback implements FeignEmailApi {

@@ -74,8 +74,14 @@ public class AnswerSerive {
         }
     }
 
-    public AnswerDto find(Integer roundId, String toString) {
-        return answerRepository.findFirstByRoundIdAndKeycloakId(roundId, toString)
+    public AnswerDto find(Integer roundId, String keycloakUserId) {
+        return answerRepository.findFirstByRoundIdAndKeycloakId(roundId, keycloakUserId)
+                .map(answer -> answerMapper.AnswerToAnswerDto(answer))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "no answer "));
+    }
+
+    public AnswerDto findAnswerCurrentRoundInSession(Integer sessionId, String keycloakUserId) {
+        return answerRepository.findFirstByCurrentRoundInSession(sessionId, keycloakUserId)
                 .map(answer -> answerMapper.AnswerToAnswerDto(answer))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "no answer "));
     }

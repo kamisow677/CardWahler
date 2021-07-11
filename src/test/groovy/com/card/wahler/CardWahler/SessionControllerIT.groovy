@@ -7,57 +7,37 @@ import com.card.wahler.CardWahler.Round.RoundRepository
 import com.card.wahler.CardWahler.Session.domain.Session
 import com.card.wahler.CardWahler.Session.domain.SessionDto
 import com.card.wahler.CardWahler.Session.infrastructure.SessionRepository
+import com.card.wahler.CardWahler.utils.BaseIntegration
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.web.client.TestRestTemplate
-import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
-import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.ContextConfiguration
-import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-import org.springframework.web.server.ResponseStatusException
-import spock.lang.Specification
+import org.springframework.http.MediaType
+import org.springframework.util.LinkedMultiValueMap
+import org.springframework.util.MultiValueMap
+import org.springframework.web.client.RestTemplate
+import org.springframework.web.util.UriComponentsBuilder
+import spock.lang.Shared
 
-import static org.junit.Assert.*
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import static org.junit.Assert.assertNotNull
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureMockMvc
-@ContextConfiguration
-@WithMockCustomUser(username = "keycloakUserId", roles = "user")
-@ActiveProfiles("test")
-class SessionControllerIT extends Specification {
+class SessionControllerIT extends BaseIntegration {
 
-	private static final NICK_KEY = "nick"
-	private static final KEYCLOAK_KEY = "keycloakUserId"
-	private static final NICK_VALUE_1 = "minsc"
-	private static final NICK_VALUE_2 = "john"
-	private static final BAD_REQUEST_NICK_VALUE = "bad nick"
+	private static final PASSWORD_KEY = "password"
 	private static final PASSWORD_1 = "password1"
 	private static final PASSWORD_2 = "password2"
 	private static final LINK_1 = "link1"
 	private static final LINK_2 = "link2"
 
-	@Autowired
-	private MockMvc mvc;
-
-	@Autowired
-	ObjectMapper objectMapper
+	@Shared
+	private String accessToken = ""
+	@Shared
+	private String keycloakId = ""
 
 	@Autowired
 	private SessionRepository sessionRepository
-
-	@LocalServerPort
-	int randomServerPort;
 
 	@Autowired
 	private AnswerRepository answerRepository
@@ -68,10 +48,42 @@ class SessionControllerIT extends Specification {
 	@Autowired
 	private PokermanRepository pokermanRepository
 
+
+	private def initAccessToken() {
+		def restTemplate = new RestTemplate()
+		def headers = new HttpHeaders()
+		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED)
+
+		MultiValueMap<String, String> map = new LinkedMultiValueMap<>()
+		map.add("client_id","voting-client-id")
+		map.add("username","user1")
+		map.add("password","password1")
+		map.add("grant_type","password")
+		map.add("client_secret","1698bbde-ebed-470a-bcf2-e72e57e66a24")
+
+		HttpEntity<String> request =
+				new HttpEntity<String>(map, headers)
+
+		String personResultAsJsonStr =
+				restTemplate.postForObject("http://localhost:8080/auth/realms/PokerVoting/protocol/openid-connect/token", request, String.class);
+		accessToken = objectMapper.readTree(personResultAsJsonStr)["access_token"]
+		accessToken = accessToken.replaceAll("\"","")
+		String[] chunks = accessToken.split("\\.");
+		Base64.Decoder decoder = Base64.getDecoder();
+		String payload = new String(decoder.decode(chunks[1]));
+		def value = objectMapper.readValue(payload, Map.class)
+		keycloakId = value["sub"]
+		accessToken = "Bearer " + objectMapper.readTree(personResultAsJsonStr)["access_token"]
+		accessToken = accessToken.replaceAll("\"","")
+	}
+
 	def setup() {
 		answerRepository.deleteAll()
 		roundRepository.deleteAll()
+		sessionRepository.deleteAll()
 		pokermanRepository.deleteAll()
+		if (accessToken == "")
+			accessToken = initAccessToken()
 	}
 
 	def "when context is loaded then all expected beans are created"() {
@@ -79,23 +91,21 @@ class SessionControllerIT extends Specification {
 		sessionRepository
 	}
 
-	def "should get all session"() {
+	def "should get all sessions"() {
 		given:
 			def sessions = [
 					Session.builder().password(PASSWORD_1).link(LINK_1).build(),
-					Session.builder().password(PASSWORD_1).link(LINK_1).build(),
+					Session.builder().password(PASSWORD_2).link(LINK_2).build(),
 			]
 			sessionRepository.save(sessions[0])
 			sessionRepository.save(sessions[1])
-			final String baseUrl = "http://localhost:"+randomServerPort+"/api/session/all";
-			URI uri = new URI(baseUrl);
 
-			HttpHeaders headers = new HttpHeaders();
-			headers.add(HttpHeaders.AUTHORIZATION, "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJ4X0xYcnlCcXhlNThYb0prOVpvTzc3N0w1ZU1pYmFpZ2hfRWp6Y2RBbXdvIn0.eyJleHAiOjE2MjI0MTI5MjYsImlhdCI6MTYyMjQwOTMyNiwianRpIjoiNmVhZTM0YjYtY2ViNi00OTVhLWExMDgtODA1NDU3ZTE4ZGJjIiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwL2F1dGgvcmVhbG1zL1Bva2VyVm90aW5nIiwiYXVkIjpbImZyb250ZW5kLXBva2VyLWlkIiwiYWNjb3VudCJdLCJzdWIiOiIxZGVhODZkZS0xYThkLTRkYTgtYjlkZC0xNmVlNDkwYzc3MDciLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJ2b3RpbmctY2xpZW50LWlkIiwic2Vzc2lvbl9zdGF0ZSI6ImIxZDk4MTMxLTkyYmUtNGM3OS04ZjJlLTZhYTc1YmUxYjk0ZCIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiaHR0cDovL2xvY2FsaG9zdDozMDAwLyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iLCJ1c2VyIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsidm90aW5nLWNsaWVudC1pZCI6eyJyb2xlcyI6WyJjbGllbnQtdXNlciJdfSwiZnJvbnRlbmQtcG9rZXItaWQiOnsicm9sZXMiOlsiY2xpZW50LXVzZXIiXX0sImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsImVtYWlsX3ZlcmlmaWVkIjpmYWxzZSwibmFtZSI6IkVyd2luIEVsb2lzIiwicHJlZmVycmVkX3VzZXJuYW1lIjoidXNlcjMiLCJnaXZlbl9uYW1lIjoiRXJ3aW4iLCJmYW1pbHlfbmFtZSI6IkVsb2lzIn0.PH_6nKehJ5qVa6pQ314qfQz8BWuJQiWbXKiHuYCyuUnxsqS2XCrkcm90123_NLGWrRU0nONqi1ZNPcm8gcsWpf0k6Na9iU_1ymIeg-gRLVhf--FUdqYpooFgY0ZsX_4uDHoX09VowhLpYgrJ14JuINDe62ssdcq0LeLxc9Te8xDs9CUchmTBOW5WHf_rgG4jmm-V2yKKXtg9ZvJ4lThBbfnulgWWaU7Jc98C5OXHUXimz9b0dQmF3ogK2lWlncuADf_LgB3k3zFW9h6m9WWhUoxGiCUMz2dXit_eej9sRS1MU4VxZJTadE0Qf-hjPbReog0OZjPwrbc-bVHLnBkR1A");
+			final String baseUrl = "http://localhost:"+randomServerPort+"/api/session/all"
+			URI uri = new URI(baseUrl)
+			HttpHeaders headers = new HttpHeaders()
+			headers.add(HttpHeaders.AUTHORIZATION, accessToken)
 		when:
-
-			TestRestTemplate testRestTemplate = new TestRestTemplate("user",
-					"passwd", TestRestTemplate.HttpClientOption.ENABLE_COOKIES);
+			RestTemplate testRestTemplate = new RestTemplate()
 			def response = testRestTemplate.
 					exchange(uri, HttpMethod.GET, new HttpEntity<>(headers), SessionDto[].class)
 		then:
@@ -107,6 +117,65 @@ class SessionControllerIT extends Specification {
 			}
 	}
 
+	def "should get specified session"() {
+		given:
+			def sessions = [
+					Session.builder().password(PASSWORD_2).link(LINK_2).pokermen(
+							[Pokerman.builder().keycloakUserId(keycloakId).build()].toSet()
+					).build(),
+					Session.builder().password(PASSWORD_1).link(LINK_1).build(),
+			]
+			sessionRepository.save(sessions[0])
+			sessionRepository.save(sessions[1])
 
+			final String baseUrl = "http://localhost:"+randomServerPort+"/api/session";
+			URI uri = new URI(baseUrl)
+			HttpHeaders headers = new HttpHeaders()
+			headers.add(HttpHeaders.AUTHORIZATION, accessToken)
+
+		when:
+			RestTemplate testRestTemplate = new RestTemplate()
+			def response = testRestTemplate.
+					exchange(uri, HttpMethod.GET, new HttpEntity<>(headers), SessionDto[].class)
+		then:
+			assert HttpStatus.OK == response.getStatusCode()
+			response.getBody()[0].with {
+				assert it.password == PASSWORD_2
+				assert it.link == LINK_2
+			}
+	}
+
+	def "should join session"() {
+		given:
+			def sessions = [
+					Session.builder().password(PASSWORD_2).link(LINK_2).build(),
+					Session.builder().password(PASSWORD_1).link(LINK_1).build(),
+			]
+			sessionRepository.save(sessions[0])
+			sessionRepository.save(sessions[1])
+
+			URI uri = new URI(UriComponentsBuilder.newInstance()
+					.scheme("http")
+					.host("localhost")
+					.port(randomServerPort)
+					.path("/api/session/join")
+					.queryParam(PASSWORD_KEY, PASSWORD_2).build().toUriString())
+			HttpHeaders headers = new HttpHeaders()
+			headers.add(HttpHeaders.AUTHORIZATION, accessToken)
+			headers.setContentType(MediaType.APPLICATION_JSON)
+
+		when:
+			RestTemplate restTemplate = new RestTemplate()
+			def response = restTemplate.
+					exchange(uri, HttpMethod.POST,
+							new HttpEntity<LinkedMultiValueMap<String, Object>>("", headers),
+							SessionDto.class)
+		then:
+			assert HttpStatus.OK == response.getStatusCode()
+			response.getBody().with {
+				assert it.password == PASSWORD_2
+				assert it.link == LINK_2
+			}
+	}
 
 }

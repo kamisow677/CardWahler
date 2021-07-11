@@ -20,7 +20,7 @@ import java.util.Set;
 public class Session {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy=GenerationType.IDENTITY)
     private int id;
 
     @NotNull()

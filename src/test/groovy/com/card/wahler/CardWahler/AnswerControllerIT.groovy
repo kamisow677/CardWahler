@@ -6,25 +6,18 @@ import com.card.wahler.CardWahler.Pokerman.Pokerman
 import com.card.wahler.CardWahler.Pokerman.PokermanRepository
 import com.card.wahler.CardWahler.Round.Round
 import com.card.wahler.CardWahler.Round.RoundRepository
+import com.card.wahler.CardWahler.Session.infrastructure.SessionRepository
+import com.card.wahler.CardWahler.utils.BaseIntegration
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.ResultActions
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
-import spock.lang.Specification
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@ContextConfiguration
 @WithMockCustomUser(username = "keycloakUserId", roles = "user")
-@ActiveProfiles("test")
-class AnswerControllerIT extends Specification {
+class AnswerControllerIT extends BaseIntegration {
 
 	private static final TASK_NAME_VALUE = "jira-1000"
 	private static final TASK_NAME_KEY = "task"
@@ -44,9 +37,14 @@ class AnswerControllerIT extends Specification {
 	@Autowired
 	private PokermanRepository pokermanRepository
 
+	@Autowired
+	private SessionRepository sessionRepository
+
+
 	def setup() {
 		answerRepository.deleteAll()
 		roundRepository.deleteAll()
+		sessionRepository.deleteAll()
 		pokermanRepository.deleteAll()
 	}
 
