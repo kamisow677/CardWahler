@@ -11,7 +11,6 @@ import org.springframework.web.server.ResponseStatusException;
 public class RoundService {
 
     private final RoundRepository repository;
-    private final SessionRepository sessionRepository;
     private final RoundMapper roundMapper;
 
     public RoundDto getCurrentRound(Integer sessionId) {
