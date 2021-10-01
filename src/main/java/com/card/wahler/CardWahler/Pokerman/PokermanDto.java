@@ -12,7 +12,7 @@ import java.util.Set;
 @Data
 public class PokermanDto {
 
-    private String keycloakUserId;
+    private int id;
 
     private String nick;
 

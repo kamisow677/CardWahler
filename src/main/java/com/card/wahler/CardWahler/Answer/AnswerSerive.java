@@ -41,20 +41,20 @@ public class AnswerSerive {
     }
 
     @Transactional
-    public void editPoints(int points, String keycloakId, String task) {
-        int affectedRows = answerRepository.editPoints(points, keycloakId, task);
+    public void editPoints(int points, String nick, String task) {
+        int affectedRows = answerRepository.editPoints(points, nick, task);
         checkCorrectNumberOfRowsAffected(affectedRows);
     }
 
     @Transactional
-    public void addAnswer(String keycloakId, int points, String taskName) {
-        Optional<Answer>  byTaskNameAndKeycloakId = answerRepository.findFirstByTaskNameAndKeycloakId(taskName, keycloakId);
+    public void addAnswer(String nick, int points, String taskName) {
+        Optional<Answer>  byTaskNameAndKeycloakId = answerRepository.findFirstByTaskNameAndNick(taskName, nick);
         if (byTaskNameAndKeycloakId.isPresent()) {
             Answer answer = byTaskNameAndKeycloakId.get();
             answer.setPoints(points);
             answerRepository.save(answer);
         } else {
-            Optional<Pokerman> pokermanOptional = pokermanRepository.findByKeycloakUserId(keycloakId, Pokerman.class);
+            Optional<Pokerman> pokermanOptional = pokermanRepository.findByNick(nick, Pokerman.class);
             Pokerman pokerman = pokermanOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "no pokerman"));
 
             Optional<Round> roundOptional = roundRepository.findByTaskName(taskName);
@@ -74,14 +74,14 @@ public class AnswerSerive {
         }
     }
 
-    public AnswerDto find(Integer roundId, String keycloakUserId) {
-        return answerRepository.findFirstByRoundIdAndKeycloakId(roundId, keycloakUserId)
+    public AnswerDto find(Integer roundId, String nick) {
+        return answerRepository.findFirstByRoundIdAndNick(roundId, nick)
                 .map(answer -> answerMapper.AnswerToAnswerDto(answer))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "no answer "));
     }
 
-    public AnswerDto findAnswerCurrentRoundInSession(Integer sessionId, String keycloakUserId) {
-        return answerRepository.findFirstByCurrentRoundInSession(sessionId, keycloakUserId)
+    public AnswerDto findAnswerCurrentRoundInSession(Integer sessionId, String nick) {
+        return answerRepository.findFirstByCurrentRoundInSession(sessionId, nick)
                 .map(answer -> answerMapper.AnswerToAnswerDto(answer))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "no answer "));
     }

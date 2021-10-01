@@ -1,0 +1,23 @@
+docker-compose -f docker-compose-kafka.yml up
+docker run --name mongodb -p 27019:27017  mongo:4.0.4
+ docker rm $(docker ps -a -q)
+docker stop $(docker ps -a -q)
+
+docker build --build-arg JAR_FILE=build/libs/*.jar -t my-app .
+docker build --build-arg JAR_FILE=build/libs/*.jar -t email-app .
+>docker run -d -p 9090:8080 my-app
+docker run -e POSTGRES_PASSWORD=docker -d -p 5432:5432 postgres
+
+docker exec -it merchants_kafka_1 kafka-topics.sh --describe --bootstrap-server localhost:9092  --topic movies
+docker exec -it merchants_kafka_1  kafka-console-consumer.sh  --bootstrap-server localhost:9092 --topic application.movies-in --from-beginning
+docker exec -it merchants_kafka_1 kafka-topics.sh --list --bootstrap-server localhost:9092
+docker exec -it merchants_kafka_1 kafka-topics.sh --alter --bootstrap-server localhost:9092 --topic movies --partitions 3
+
+db.inventory.find( { item: "canvas" } )
+
+docker build --build-arg JAR_FILE=build/libs/*.jar -t poker-app .
+
+docker-compose up -d --no-deps --build poker-app
+docker-compose up -d --no-deps --build email-app
+
+[update com.voting.poker.VotingPoker.Answer.Answer a set a.points = ?2 and  a.round_id = ?3where a.round_id = (SELECT p.id FROM com.voting.poker.VotingPoker.Pokerman.Pokerman p WHERE p.nick = ?1)]

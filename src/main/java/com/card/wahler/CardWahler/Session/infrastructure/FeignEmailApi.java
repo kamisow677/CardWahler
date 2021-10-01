@@ -5,22 +5,15 @@ import feign.RequestInterceptor;
 import feign.RequestTemplate;
 import feign.Response;
 import feign.codec.ErrorDecoder;
-import org.keycloak.adapters.springsecurity.account.SimpleKeycloakAccount;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.client.*;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizedClientManager;
-import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.server.ResponseStatusException;
 
 @FeignClient(name = "email", url = "${feign.client.url}",
@@ -34,7 +27,7 @@ public interface FeignEmailApi extends EmailApi {
     class FeignEmailApiFallback implements FeignEmailApi {
         @Override
         public ResponseEntity<String> sendEmail() {
-            return null;
+            return ResponseEntity.ok("fallback triggered");
         }
     }
 
@@ -43,31 +36,13 @@ public interface FeignEmailApi extends EmailApi {
         private static final String AUTHORIZATION_HEADER="Authorization";
         private static final String TOKEN_TYPE = "Bearer";
 
-        @Autowired
-        OAuth2AuthorizedClientManager oAuth2AuthorizedClientManager;
+        public static String getBearerTokenHeader() {
+            return ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest().getHeader("Authorization");
+        }
 
         @Override
         public void apply(RequestTemplate requestTemplate) {
-//            AnonymousAuthenticationToken anonymousAuthenticationToken = new AnonymousAuthenticationToken
-//                ("key", "anonymous", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
-
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-            if (authentication != null && authentication.getDetails() instanceof SimpleKeycloakAccount) {
-                SimpleKeycloakAccount details = (SimpleKeycloakAccount) authentication.getDetails();
-                requestTemplate.header(AUTHORIZATION_HEADER, String.format("%s %s", TOKEN_TYPE, details.getKeycloakSecurityContext().getTokenString()));
-            } else {
-                var request = OAuth2AuthorizeRequest
-                        .withClientRegistrationId("internal-api") // <- Here you load your registered client
-                        .principal(authentication)
-                        .build();
-
-                var ael = oAuth2AuthorizedClientManager.authorize(request);
-
-                if (authentication != null) {
-                    requestTemplate.header(AUTHORIZATION_HEADER, String.format("%s %s", TOKEN_TYPE,  ael.getAccessToken().getTokenValue()));
-                }
-            }
+            requestTemplate.header(AUTHORIZATION_HEADER, getBearerTokenHeader());
         }
 
     }
@@ -83,7 +58,6 @@ public interface FeignEmailApi extends EmailApi {
         public ErrorDecoder errorDecoder() {
             return new CustomErrorDecoder();
         }
-
 
     }
 
@@ -107,19 +81,4 @@ public interface FeignEmailApi extends EmailApi {
         }
     }
 
-}
-
-@Configuration
-class AuthManager {
-    @Bean
-    public OAuth2AuthorizedClientManager authorizedClientManager(
-            ClientRegistrationRepository clientRegistrationRepository,
-            OAuth2AuthorizedClientRepository authorizedClientRepository) {
-
-        DefaultOAuth2AuthorizedClientManager authorizedClientManager =
-                new DefaultOAuth2AuthorizedClientManager(
-                        clientRegistrationRepository, authorizedClientRepository);
-
-        return authorizedClientManager;
-    }
 }

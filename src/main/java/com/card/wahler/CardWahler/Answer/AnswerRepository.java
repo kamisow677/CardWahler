@@ -16,29 +16,31 @@ public interface AnswerRepository extends CrudRepository<Answer, String> {
             "(SELECT r.id FROM round r " +
             "WHERE r.task_name = ?3)" +
             "AND pokerman_id = " +
-            "(SELECT p.keycloak_user_id FROM pokerman p " +
-            "WHERE p.keycloak_user_id = ?2)", nativeQuery = true)
-    int editPoints(int points, String keycloakId, String taskName);
+            "(SELECT p.id FROM pokerman p " +
+            "WHERE p.nick = ?2)", nativeQuery = true)
+    int editPoints(int points, String nick, String taskName);
 
     @Query(value = "SELECT * FROM answer " +
             "WHERE round_id = " +
             "(SELECT r.id FROM round r " +
             "WHERE r.task_name = ?1)" +
-            "AND pokerman_id = ?2", nativeQuery = true)
-    Optional<Answer> findFirstByTaskNameAndKeycloakId(String taskName, String keycloakId);
+            "AND pokerman_id = " +
+            "(SELECT p.id FROM pokerman p " +
+            "WHERE p.nick = ?2)", nativeQuery = true)
+    Optional<Answer> findFirstByTaskNameAndNick(String taskName, String nick);
 
-    @Query(value = "SELECT * FROM answer " +
+    @Query(value = "SELECT * FROM answer INNER JOIN pokerman ON (answer.pokerman_id = pokerman.id) " +
             "WHERE round_id = ?1 " +
-            "AND pokerman_id = ?2", nativeQuery = true)
-    Optional<Answer> findFirstByRoundIdAndKeycloakId(Integer roundId, String keycloakId);
+            "AND pokerman.nick = ?2", nativeQuery = true)
+    Optional<Answer> findFirstByRoundIdAndNick(Integer roundId, String nick);
 
     @Query(value = "SELECT * FROM answer " +
             "WHERE round_id = (" +
             "   SELECT r.id FROM round r" +
             "   WHERE r.session_id = ?1  AND is_current = true" +
             ")" +
-            "AND pokerman_id = ?2", nativeQuery = true)
-    Optional<Answer> findFirstByCurrentRoundInSession(Integer sessionId, String keycloakId);
+            "AND pokerman_nick = ?2", nativeQuery = true)
+    Optional<Answer> findFirstByCurrentRoundInSession(Integer sessionId, String nick);
 
 
 }

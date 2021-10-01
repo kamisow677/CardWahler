@@ -9,20 +9,18 @@ import com.card.wahler.CardWahler.Session.domain.Session
 import com.card.wahler.CardWahler.Session.infrastructure.SessionRepository
 import com.card.wahler.CardWahler.utils.BaseIntegration
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 
-@WithMockCustomUser(username = "keycloakUserId", roles = "user")
+@WithMockUser(username="jim",  roles=["USER","MANAGER"])
 class RoundControllerIT extends BaseIntegration {
 
 	private static final TASK_NAME_VALUE = "hira-1000"
 	private static final TASK_NAME_VALUE2 = "hira-1001"
 	private static final Integer SESSION_ID_VALUE = 1
-
-	@Autowired
-	private MockMvc mvc;
 
 	@Autowired
 	private AnswerRepository answerRepository

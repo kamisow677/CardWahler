@@ -1,6 +1,5 @@
 package com.card.wahler.CardWahler.Round;
 
-import com.card.wahler.CardWahler.Session.infrastructure.SessionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;

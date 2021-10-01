@@ -32,17 +32,17 @@ public class SessionEndpoint {
 
     @GetMapping
     public ResponseEntity<Set<SessionDto>> get(Authentication authentication) {
-        return ResponseEntity.ok(sessionService.fingKeycloakUserIdById(authentication.getPrincipal().toString()));
+        return ResponseEntity.ok(sessionService.findSessionsByNick(authentication.getName()));
     }
 
-    @PostMapping(value = "/join", consumes = "application/json", produces = "application/json")
+    @PostMapping(value = "/join")
     public ResponseEntity<SessionDto> joinSession(@RequestParam String password, Authentication authentication) {
-        return ResponseEntity.ok(sessionService.joinSession(password, authentication.getPrincipal().toString()));
+        return ResponseEntity.ok(sessionService.joinSession(password, authentication.getName()));
     }
 
     @PutMapping(value = "/leave", consumes = "application/json", produces = "application/json")
     public ResponseEntity<Object> leaveSession(@RequestParam Integer sessionId, Authentication authentication) {
-        sessionService.leaveSession(sessionId, authentication.getPrincipal().toString());
+        sessionService.leaveSession(sessionId, authentication.getName());
         return ResponseEntity.noContent().build();
     }
 

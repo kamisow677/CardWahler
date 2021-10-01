@@ -3,7 +3,6 @@ package com.card.wahler.CardWahler.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,25 +24,24 @@ public class AnswerEndpoint {
     }
 
     @GetMapping
-    public ResponseEntity<AnswerDto> get(@RequestParam Integer roundId, Authentication authentication) {
-        return ResponseEntity.ok(service.find(roundId, authentication.getPrincipal().toString()));
+    public ResponseEntity<AnswerDto> get(@RequestParam int roundId, Authentication authentication) {
+        return ResponseEntity.ok(service.find(roundId, authentication.getName()));
     }
 
     @GetMapping("/current/round")
-    public ResponseEntity<AnswerDto> getAnswerInCurrentRound(@RequestParam Integer sessionId, Authentication authentication) {
-        return ResponseEntity.ok(service.findAnswerCurrentRoundInSession(sessionId, authentication.getPrincipal().toString()));
+    public ResponseEntity<AnswerDto> getAnswerInCurrentRound(@RequestParam int sessionId, Authentication authentication) {
+        return ResponseEntity.ok(service.findAnswerCurrentRoundInSession(sessionId, authentication.getName()));
     }
 
     @PutMapping("/{points}")
-    public ResponseEntity<Object> editPoints(@PathVariable int points, @RequestParam String task) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        service.editPoints(points, authentication.getPrincipal().toString(), task);
+    public ResponseEntity<Object> editPoints(@PathVariable int points, @RequestParam String task, Authentication authentication) {
+        service.editPoints(points, authentication.getName(), task);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/{points}")
     public ResponseEntity<Object> addAnswer(@PathVariable int points, @RequestParam String task, Authentication authentication) {
-        service.addAnswer(authentication.getPrincipal().toString(),  points, task);
+        service.addAnswer(authentication.getName(), points, task);
         return ResponseEntity.ok().build();
     }
 

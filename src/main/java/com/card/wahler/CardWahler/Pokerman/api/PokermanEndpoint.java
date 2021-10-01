@@ -37,17 +37,20 @@ public class PokermanEndpoint {
     }
 
     @GetMapping()
-    public ResponseEntity<Object> getPokerman(@RequestParam Optional<String> nick, @RequestParam Optional<String> keycloakUserId,
+    public ResponseEntity<Object> getPokerman(@RequestParam Optional<String> nick, @RequestParam Optional<String> id,
             Authentication authentication) {
-        if (keycloakUserId.isEmpty() && nick.isEmpty())
-            keycloakUserId = Optional.of(authentication.getPrincipal().toString());
-        PokermanDto pokerman = service.getPokermanDto(nick, keycloakUserId);
+        PokermanDto pokerman;
+        if (id.isPresent())
+            pokerman = service.getPokermanDtoById(id.get());
+        else if (nick.isPresent())
+            pokerman = service.getPokermanDtoByNick(nick.get());
+        else
+            pokerman = service.getPokermanDtoByNick(authentication.getName());
         return ResponseEntity.ok(pokerman);
     }
 
     @PostMapping(consumes = "application/json", produces = "application/json")
     public ResponseEntity<Pokerman> createPokerman(@RequestBody Pokerman pokerman, Authentication authentication) {
-        pokerman.setKeycloakUserId(authentication.getPrincipal().toString());
         return  ResponseEntity.ok(service.save(pokerman));
     }
 

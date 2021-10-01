@@ -3,7 +3,6 @@ package com.card.wahler.CardWahler.Pokerman;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -11,7 +10,6 @@ import javax.transaction.Transactional;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -23,7 +21,6 @@ import java.util.stream.StreamSupport;
 public class PokermanService {
 
     private final PokermanRepository repository;
-    private final KeycloakClient keycloakClient;
     private final PokermanMapper pokermanMapper;
 
     public Pokerman save(Pokerman pokerman) {
@@ -32,7 +29,7 @@ public class PokermanService {
 
     public Set<PokermanDto> findAll() {
         Stream<Pokerman> stream = StreamSupport.stream(repository.findAll().spliterator(), false);
-        return stream.map(pokerman -> pokermanMapper.pokermanToPokermanDto(pokerman)).collect(Collectors.toSet());
+        return stream.map(pokermanMapper::pokermanToPokermanDto).collect(Collectors.toSet());
     }
 
     @Transactional
@@ -52,29 +49,19 @@ public class PokermanService {
     }
 
     public byte[] getImage(String nick) {
-        Iterator<ImageOnly> iterator = repository.findByNick(nick, ImageOnly.class).iterator();
-        if (iterator.hasNext()) {
-            return iterator.next().getImage();
+        Optional<ImageOnly> image = repository.findByNick(nick, ImageOnly.class);
+        if (image.isPresent()) {
+            return image.get().getImage();
         } else throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "no image for " + nick);
     }
 
-    public PokermanDto getPokermanDto(Optional<String> nick, Optional<String> keycloakUserId) {
-        return pokermanMapper.pokermanToPokermanDto(
-                getPokerman(nick, keycloakUserId)
-        );
+    public PokermanDto getPokermanDtoByNick(String nick) {
+        return pokermanMapper.pokermanToPokermanDto(repository.findByNick(nick, Pokerman.class)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "no user for " + nick)));
     }
 
-    private Pokerman getPokerman(Optional<String> nick, Optional<String> keycloakUserId) {
-        if (nick.isPresent() && keycloakUserId.isPresent())
-            return repository.findByNickAndKeycloakUserId(nick.get(), keycloakUserId.get(), Pokerman.class)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "no user for " + nick));
-        else if (nick.isPresent()) {
-            Iterator<Pokerman> iterator = repository.findByNick(nick.get(), Pokerman.class).iterator();
-            if (iterator.hasNext()) {
-                return iterator.next();
-            } else throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "no user for " + nick);
-        } else
-            return repository.findByKeycloakUserId(keycloakUserId.get(), Pokerman.class)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "no user for " + nick));
+    public PokermanDto getPokermanDtoById(String id) {
+        return  pokermanMapper.pokermanToPokermanDto( repository.findById(id, Pokerman.class)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "no user for " + id)));
     }
 }

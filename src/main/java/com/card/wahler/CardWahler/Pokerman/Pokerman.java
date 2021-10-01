@@ -9,12 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.Builder;
 
-import javax.persistence.Id;
-import javax.persistence.Entity;
-import javax.persistence.ManyToMany;
-import javax.persistence.FetchType;
-import javax.persistence.CascadeType;
-import javax.persistence.OneToMany;
+import javax.persistence.*;
 import java.util.Set;
 
 @Entity
@@ -26,7 +21,8 @@ import java.util.Set;
 public class Pokerman {
 
     @Id
-    private String keycloakUserId;
+    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    private int id;
 
     private String nick;
 
@@ -46,13 +42,13 @@ public class Pokerman {
     private Set<Answer> answers;
 
     @JsonCreator
-    public Pokerman(@JsonProperty("keycloakUserId") String keycloakUserId,
+    public Pokerman(@JsonProperty("id") int id,
                     @JsonProperty("nick") String nick,
                     @JsonProperty("image") byte[] image,
                     @JsonProperty("sesions") Set<Session> sesions,
                     @JsonProperty("answers") Set<Answer> answers
     ) {
-        this.keycloakUserId = keycloakUserId;
+        this.id = id;
         this.nick = nick;
         this.image = image;
         this.sesions = sesions;

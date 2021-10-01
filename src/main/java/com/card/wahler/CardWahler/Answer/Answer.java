@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 import javax.persistence.*;
+import javax.validation.constraints.Email;
 
 @Entity
 @Getter
@@ -34,6 +35,7 @@ public class Answer {
     private Round round;
 
     @JsonCreator
+    @Email
     public Answer(@JsonProperty("id") int id,
                  @JsonProperty("points") int points,
                  @JsonProperty("pokerman") Pokerman pokerman,
